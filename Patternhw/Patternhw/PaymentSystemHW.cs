@@ -32,7 +32,6 @@ public class PaymentSystem1 : IPaymentSystem
         string hash = CreateMD5();
         return hash + info;
     }
-    prop
 
     private string CreateMD5()
     {
