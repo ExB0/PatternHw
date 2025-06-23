@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-public interface IPaymentSystem
+﻿public interface IPaymentSystem
 {
     public string GetPayingLink(Order order);
 }
@@ -12,7 +10,6 @@ public class Order
 
     public Order(int id,int amount)
     {
-
         if (id < 0)
             throw new ArgumentOutOfRangeException(nameof(id),"Айди не может быть меньше 0");
 
@@ -28,14 +25,14 @@ public class PaymentSystem1 : IPaymentSystem
 {
     public string GetPayingLink(Order order)
     {
-
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-         string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-         string hash = CreateMD5();
-         return  hash + info;
+        string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
+        string hash = CreateMD5();
+        return hash + info;
     }
+    prop
 
     private string CreateMD5()
     {
@@ -135,7 +132,6 @@ public class PaymentSystem3 : IPaymentSystem
         return $"Цена товара: {amount}";
     }
 }
-
 
 class Program
 {
