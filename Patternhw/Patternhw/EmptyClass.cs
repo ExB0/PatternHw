@@ -33,13 +33,13 @@ public class PaymentSystem1 : IPaymentSystem
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
          string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-         string hash = CreateMD5(info);
+         string hash = CreateMD5();
          return  hash + info;
     }
 
-    private string CreateMD5(string inputID)
+    private string CreateMD5()
     {
-        return inputID = new Random().Next().ToString("Хэщ");
+        return "Хэщ"+ new Random().Next().ToString();
     }
 }
 
@@ -61,21 +61,28 @@ public class PaymentSystem2 : IPaymentSystem
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
         string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-        string hash = CreateMD5(info);
+        string hash = CreateMD5();
         string price = OrderPrice(order, _goodPrice);
         return price + hash + info;
     }
 
-    private string CreateMD5(string inputID)
+    private string CreateMD5()
     {
-        return inputID = new Random().Next().ToString();
+        return "Хэщ" + new Random().Next().ToString();
     }
 
     private string OrderPrice(Order order,int price)
     {
+
+        if (order == null)
+            throw new ArgumentNullException(nameof(order), "Нет заказа");
+
+        if (price <= 0)
+            throw new ArgumentOutOfRangeException(nameof(price), "Цена не может быть отрицательной");
+
         int amount = order.Amount;
         amount *= price;
-        return $"Цена товара: {price}";
+        return $"Цена товара: {amount}";
     }
 }
 
@@ -104,22 +111,28 @@ public class PaymentSystem3 : IPaymentSystem
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
         string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-        string hash = CreateMD5(info);
+        string hash = CreateMD5();
         string price = OrderPrice(order, _goodPrice);
         return _secretKey +price + hash + info;
     }
 
-    private string CreateMD5(string inputID)
+    private string CreateMD5()
     {
-        return inputID = new Random().Next().ToString();
+        return "Хэщ" + new Random().Next().ToString();
     }
 
     private string OrderPrice(Order order, int price)
     {
+
+        if (order == null)
+            throw new ArgumentNullException(nameof(order), "Нет заказа");
+
+        if (price <= 0)
+            throw new ArgumentOutOfRangeException(nameof(price), "Цена не может быть отрицательной");
+
         int amount = order.Amount;
         amount *= price;
-        return  $"Цена товара: {price}";
-
+        return $"Цена товара: {amount}";
     }
 }
 
