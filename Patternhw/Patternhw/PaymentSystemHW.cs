@@ -1,4 +1,7 @@
-﻿public interface IPaymentSystem
+﻿using System.Security.Cryptography;
+using System.Text;
+
+public interface IPaymentSystem
 {
     public string GetPayingLink(Order order);
 }
@@ -28,14 +31,30 @@ public class PaymentSystem1 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-        string hash = CreateMD5();
-        return hash + info;
+        string info = $"{order.Id}{order.Amount}";
+        string hash = CreateMD5(info);
+        return hash + $"{order.Id}айди заказа и {order.Amount} количество товара";
     }
 
-    private string CreateMD5()
+    private string CreateMD5(string inputInfo)
     {
-        return "Хэщ"+ new Random().Next().ToString();
+        if (inputInfo == null)
+            throw new ArgumentNullException(nameof(inputInfo),"Нет данных");
+
+        using (var md5 = MD5.Create())
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(inputInfo);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (byte b in hashBytes)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+            
+            return "Хэщ заказа" + sb.ToString();
+        }
     }
 }
 
@@ -56,15 +75,31 @@ public class PaymentSystem2 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-        string hash = CreateMD5();
+        string info = $"{order.Id}{order.Amount}";
+        string hash = CreateMD5(info);
         string price = OrderPrice(order, _goodPrice);
-        return price + hash + info;
+        return $"Цена заказа{price} + {order.Id}айди заказа и {order.Amount} количество товара + {hash}";
     }
 
-    private string CreateMD5()
+    private string CreateMD5(string inputInfo)
     {
-        return "Хэщ" + new Random().Next().ToString();
+        if (inputInfo == null)
+            throw new ArgumentNullException(nameof(inputInfo),"Нет данных");
+
+        using (var md5 = MD5.Create())
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(inputInfo);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (byte b in hashBytes)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+
+            return "Хэщ заказа" + sb.ToString();
+        }
     }
 
     private string OrderPrice(Order order,int price)
@@ -106,15 +141,28 @@ public class PaymentSystem3 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Id}айди заказа и {order.Amount} количество товара";
-        string hash = CreateMD5();
+        string info = $"{order.Amount}{order.Id}{_secretKey}";
+        string sha1 = CreateSHA1(info);
         string price = OrderPrice(order, _goodPrice);
-        return _secretKey +price + hash + info;
+        return $"ключ заказа{_secretKey} +Цена заказа{price} + {order.Id}айди заказа и {order.Amount} количество товара + {sha1}";
     }
 
-    private string CreateMD5()
+    private string CreateSHA1(string inputInfo)
     {
-        return "Хэщ" + new Random().Next().ToString();
+        using (var sha1 = SHA1.Create())
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(inputInfo);
+            byte[] hashBytes = sha1.ComputeHash(inputBytes);
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (byte b in hashBytes)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+
+            return "Sha1 заказа" + sb.ToString();
+        }
     }
 
     private string OrderPrice(Order order, int price)
@@ -126,9 +174,7 @@ public class PaymentSystem3 : IPaymentSystem
         if (price <= 0)
             throw new ArgumentOutOfRangeException(nameof(price), "Цена не может быть отрицательной");
 
-        int amount = order.Amount;
-        amount *= price;
-        return $"Цена товара: {amount}";
+        return $"Цена товара: {order.Amount * price}";
     }
 }
 
