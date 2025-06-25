@@ -14,6 +14,7 @@ public interface IHashSystem
 
 public class MD5Hasher : IHashSystem
 {
+    private const string _hexFormat = "x2";
     public string ComputeHash(string inputInfo)
     {
         if (inputInfo == null)
@@ -22,14 +23,17 @@ public class MD5Hasher : IHashSystem
         using var md5 = MD5.Create();
         var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
         var sb = new StringBuilder();
+
         foreach (var b in hashBytes)
-            sb.Append(b.ToString("x2"));
+            sb.Append(b.ToString(_hexFormat));
+
         return sb.ToString();
     }
 }
 
 public class SHA1Hasher : IHashSystem
 {
+    private const string _hexFormat = "x2";
     public string ComputeHash(string inputInfo)
     {
         if (inputInfo == null)
@@ -38,8 +42,10 @@ public class SHA1Hasher : IHashSystem
         using var sha1 = SHA1.Create();
         var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
         var sb = new StringBuilder();
+
         foreach (var b in hashBytes)
-            sb.Append(b.ToString("x2"));
+            sb.Append(b.ToString(_hexFormat));
+
         return sb.ToString();
     }
 }
