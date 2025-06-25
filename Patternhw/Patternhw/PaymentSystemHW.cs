@@ -15,19 +15,22 @@ public interface IHashSystem
 public class MD5Hasher : IHashSystem
 {
     private const string _hexFormat = "x2";
+
     public string ComputeHash(string inputInfo)
     {
         if (inputInfo == null)
             throw new ArgumentNullException(nameof(inputInfo), "Нет данных");
 
-        using var md5 = MD5.Create();
-        var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
-        var sb = new StringBuilder();
+        using (var md5 = MD5.Create())
+        {
+            var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
+            var sb = new StringBuilder();
 
-        foreach (var b in hashBytes)
-            sb.Append(b.ToString(_hexFormat));
+            foreach (var b in hashBytes)
+                sb.Append(b.ToString(_hexFormat));
 
-        return sb.ToString();
+            return sb.ToString();
+        }
     }
 }
 
@@ -39,14 +42,16 @@ public class SHA1Hasher : IHashSystem
         if (inputInfo == null)
             throw new ArgumentNullException(nameof(inputInfo), "Нет данных");
 
-        using var sha1 = SHA1.Create();
-        var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
-        var sb = new StringBuilder();
+        using (var sha1 = SHA1.Create())
+        {
+            var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(inputInfo));
+            var sb = new StringBuilder();
 
-        foreach (var b in hashBytes)
-            sb.Append(b.ToString(_hexFormat));
+            foreach (var b in hashBytes)
+                sb.Append(b.ToString(_hexFormat));
 
-        return sb.ToString();
+            return sb.ToString();
+        }
     }
 }
 
@@ -85,26 +90,21 @@ public class PaymentSystem1 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Id}{order.Amount}";
-        string hash = _hashSystem.ComputeHash(info);
-        return $"link?orderId={order.Id}&amount={order.Amount}&hash={hash}";
+        string hash = _hashSystem.ComputeHash(order.Id.ToString());
+        return $"pay.system1.ru/order?amount={order.Amount}RUB&hash={hash}";
     }
 }
 
 public class PaymentSystem2 : IPaymentSystem
 {
-    private readonly int _goodPrice;
+
     private readonly IHashSystem _hashSystem;
 
-    public PaymentSystem2(int price,IHashSystem hashSystem)
+    public PaymentSystem2(IHashSystem hashSystem)
     {
-        if (price <= 0)
-            throw new ArgumentOutOfRangeException(nameof(price),"Цена не может быть отрицательной");
-
         if (hashSystem == null)
             throw new ArgumentNullException(nameof(hashSystem), "Нет системы хэширования");
 
-        _goodPrice = price;
         _hashSystem = hashSystem;
     }
 
@@ -113,23 +113,18 @@ public class PaymentSystem2 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Id}{order.Amount}";
-        string hash = _hashSystem.ComputeHash(info);
-        int price = order.Amount * _goodPrice;
-        return $"link?orderId={order.Id}&amount={order.Amount}&price={price}&hash={hash}";
+        string hash = _hashSystem.ComputeHash($"{order.Id}{order.Amount}");
+        return $"order.system2.ru/pay?hash={hash}";
     }
 }
 
 public class PaymentSystem3 : IPaymentSystem
 {
     private readonly string  _secretKey;
-    private readonly int _goodPrice;
     private readonly IHashSystem _hashSystem;
 
-    public PaymentSystem3(int price,string key, IHashSystem hashSystem)
+    public PaymentSystem3(string key, IHashSystem hashSystem)
     {
-        if (price <= 0)
-            throw new ArgumentOutOfRangeException(nameof(price), "Цена не может быть отрицательной");
 
         if (key == null)
             throw new ArgumentNullException(nameof(key), "Нет ключа");
@@ -137,7 +132,6 @@ public class PaymentSystem3 : IPaymentSystem
         if (hashSystem == null)
             throw new ArgumentNullException(nameof(hashSystem), "Нет системы хэширования");
 
-        _goodPrice = price;
         _secretKey = key;
         _hashSystem = hashSystem;
     }
@@ -147,10 +141,8 @@ public class PaymentSystem3 : IPaymentSystem
         if (order == null)
             throw new ArgumentNullException(nameof(order), "Нет заказа");
 
-        string info = $"{order.Amount}{order.Id}{_secretKey}";
-        string sha1 = _hashSystem.ComputeHash(info);
-        int price = order.Amount * _goodPrice;
-        return $"link?orderId={order.Id}&amount={order.Amount}&price={price}&key={_secretKey}&hash={sha1}";
+        string hash = _hashSystem.ComputeHash($"{order.Amount}{order.Id}{_secretKey}");
+        return $"system3.com/pay?amount={order.Amount}&curency=RUB&hash={hash}";
     }
 
 }
@@ -163,7 +155,7 @@ class Program
         var sha1 = new SHA1Hasher();
 
         var ps1 = new PaymentSystem1(md5);
-        var ps2 = new PaymentSystem2(10, md5);
-        var ps3 = new PaymentSystem3(10, "123", sha1);
+        var ps2 = new PaymentSystem2( md5);
+        var ps3 = new PaymentSystem3("123", sha1);
     }
 }
